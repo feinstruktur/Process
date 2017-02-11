@@ -166,6 +166,20 @@ class ProcessTests: XCTestCase {
       XCTAssertEqual(promptPrinter.printed, "Executed command 'ls -all'\n")
     }
 
+    func testStrayOutput() {
+      CommandExecutor.currentTaskExecutor = ActualTaskExecutor()
+      let msg = [
+        "Lorem ipsum dolor sit amet,",
+        "consectetur adipiscing elit,",
+      ].joined(separator: "\n")
+      let res = Process.exec("echo '\(msg)'") { $0.echo = [.Stdout, .Stderr, .Command] }
+      XCTAssertEqual(res.exitStatus, 0)
+      // added an extra '\n' to make test fail on purpose - after which there are stray
+      // characters in the error log
+      XCTAssertEqual(res.stdout, "\(msg)\n\n")
+      XCTAssertEqual(res.stderr, "")
+   }
+
   static var allTests : [(String, (ProcessTests) -> () throws -> Void)] {
     return [
       ("testItExecutesACommandWithDummyExecutor", testItExecutesACommandWithDummyExecutor),
